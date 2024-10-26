@@ -46,8 +46,10 @@
 		"vitest": "^2.0.4"
 	},
 	"dependencies": {
+		"@capacitor/android": "^6.1.2",
 		"@capacitor/cli": "^6.1.2",
 		"@capacitor/core": "^6.1.2",
+		"@capacitor/ios": "^6.1.2",
 		"@supabase/supabase-js": "^2.45.6",
 		"drizzle-orm": "^0.33.0",
 		"postgres": "^3.4.4"
