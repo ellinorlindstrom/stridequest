@@ -2,6 +2,7 @@
 
 	import { onDestroy, onMount } from "svelte";
     import { addLocationToDB, fetchLocations } from "$lib/services/supabase";
+	import { get } from "svelte/store";
 
     let locations: { lat: number, lng: number }[] = []
     let map: google.maps.Map
@@ -77,50 +78,73 @@ function setUpSearch() {
         })
         
         watchId = navigator.geolocation.watchPosition(
-            (position) => {
+            async (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                const newPosition = new google.maps.LatLng(lat, lng)
 
-                const currentPath = path.getPath()
-                currentPath.push(newPosition)
-                path.setPath(currentPath)
+                const snapToRoadUrl = `https://roads.googleapis.com/v1/snapToRoads?path=${lat},${lng}&interpolate=true&key=${api}`
+                try {
+                    const response = await fetch(snapToRoadUrl)
+                    const data = await response.json()
+                    if (data.snappedPoints && data.snappedPoints.length > 0) {
+                        const snappedLocation = data.snappedPoints[0].location;
+                        const snappedPosition = new google.maps.LatLng(
+                            snappedLocation.latitude, 
+                            snappedLocation.longitude
+                        )
 
-                if (currentPositionMarker) {
-                    currentPositionMarker.setPosition(newPosition)
-                } else {
-                    currentPositionMarker = new google.maps.Marker({
-                        position: newPosition,
-                        map: map,
-                        icon: {
-                            path: google.maps.SymbolPath.CIRCLE,
-                            scale: 7,
-                            fillColor: '#4285F4',
-                            fillOpacity: 1,
-                            strokeWeight: 2,
-                            strokeColor: '#FFFFFF'
-                        }
-                    })
-                }
-
-                map.setCenter(newPosition)
-            },
-            (error) => {
-                  console.error('Error in geolocation watch:', error)
-            },
-        {
+                    updatePath(snappedPosition)
+            }
+        } catch (error) {
+                  console.error('Error snapping to road', error)
+            }
+    },
+    /*     {
             enableHighAccuracy: true,
             timeout: 5000,
             maximumAge: 0
-        }
+        } */
+
         )
     }
+
+
+    async function updatePath(position: google.maps.LatLng) {
+    try {
+        // Update the visual path
+        const currentPath = path.getPath()
+        currentPath.push(position)
+        path.setPath(currentPath)
+
+        // Update marker position
+        if (currentPositionMarker) {
+            currentPositionMarker.setPosition(position)
+        } else {
+            currentPositionMarker = new google.maps.Marker({
+                position: position,
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 7,
+                    fillColor: '#4285F4',
+                    fillOpacity: 1,
+                    strokeWeight: 2,
+                    strokeColor: '#FFFFFF'
+                }
+            })
+        }
+        await addLocationToDB()
+
+        map.setCenter(position)
+    } catch (error) {
+        console.error('Error updating path:', error)
+    }
+}
 
 
 onMount(async() => {
     window.initMap = initMap;
     loadMap()
-    await addLocationToDB()
     locations = await fetchLocations()
     console.log(locations)
     if (mapLoaded) addMarkers()

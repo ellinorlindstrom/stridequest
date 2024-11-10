@@ -22,7 +22,7 @@ export async function fetchLocations() {
 export async function addLocationToDB() {
     for (const location of locations) {
       const { error } = await supabase.from('locations').insert([
-        { name: location.name, lat: location.lat, lng: location.lng },
+        { name: location.name, lat: location.lat, lng: location.lng},
       ]);
       if (error) {
         console.error('Error inserting street:', error);
