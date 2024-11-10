@@ -2,14 +2,13 @@
 
 	import { onDestroy, onMount } from "svelte";
     import { addLocationToDB, fetchLocations } from "$lib/services/supabase";
-	import { get } from "svelte/store";
 
     let locations: { lat: number, lng: number }[] = []
     let map: google.maps.Map
     let mapLoaded = false
     let watchId: number
     let path: google.maps.Polyline
-    let currentPositionMarker: google.maps.Marker
+    let currentPositionMarker: google.maps.marker.AdvancedMarkerElement | null
 
     const api = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
@@ -59,7 +58,7 @@ function setUpSearch() {
         if (!mapLoaded) return
     locations.forEach(location => {
         console.log("adding marker: ", location)
-        const marker = new google.maps.Marker({
+        const marker = new google.maps.marker.AdvancedMarkerElement({
             position: location,
             map: map
         })
@@ -120,17 +119,10 @@ function setUpSearch() {
         if (currentPositionMarker) {
             currentPositionMarker.setPosition(position)
         } else {
-            currentPositionMarker = new google.maps.Marker({
+            currentPositionMarker = new google.maps.marker.AdvancedMarkerElement({
                 position: position,
                 map: map,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 7,
-                    fillColor: '#4285F4',
-                    fillOpacity: 1,
-                    strokeWeight: 2,
-                    strokeColor: '#FFFFFF'
-                }
+                content: createCustomMarkerElement()
             })
         }
         await addLocationToDB()
@@ -139,6 +131,16 @@ function setUpSearch() {
     } catch (error) {
         console.error('Error updating path:', error)
     }
+}
+
+function createCustomMarkerElement() {
+    const div = document.createElement('div');
+    div.style.width = '14px'; 
+    div.style.height = '14px';
+    div.style.borderRadius = '50%';
+    div.style.backgroundColor = '#4285F4'; 
+    div.style.border = '2px solid #FFFFFF'; 
+    return div;
 }
 
 

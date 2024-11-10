@@ -23,14 +23,7 @@ declare namespace google.maps {
         getPath(): MVCArray<LatLng>;
         setPath(path: LatLng[] | MVCArray<LatLng>): void;
     }
-
-    class Marker {
-        constructor(opts?: MarkerOptions);
-        setMap(map: Map | null): void;
-        setPosition(latLng: LatLng | LatLngLiteral): void;
-    }
     
-
     interface PolylineOptions {
         path?: LatLng[] | MVCArray<LatLng>;
         strokeColor?: string;
@@ -46,6 +39,25 @@ declare namespace google.maps {
         zIndex?: number;
     }
 
+    namespace marker {
+        class AdvancedMarkerElement {
+            constructor(options?: AdvancedMarkerOptions);
+            map: Map | null;
+            position: LatLng | LatLngLiteral | null;
+            title: string | null;
+            setMap(map: Map | null): void;
+            setPosition(latLng: LatLng | LatLngLiteral): void;
+        }
+
+        interface AdvancedMarkerOptions {
+          map?: Map;
+          position?: LatLng | LatLngLiteral;
+          title?: string;
+          content?: Element;
+          gmpDraggable?: boolean;
+    }
+    }
+
     interface IconSequence {
         fixedRotation?: boolean;
         icon?: symbol;
@@ -53,10 +65,6 @@ declare namespace google.maps {
         repeat?: string;
     }
 
-    class Marker {
-      constructor(opts?: MarkerOptions);
-      setMap(map: Map | null): void;
-    }
   
     interface MapOptions {
       center?: LatLngLiteral;
